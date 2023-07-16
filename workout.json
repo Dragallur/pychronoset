@@ -1,0 +1,8 @@
+{
+    "segments": [
+        {"name": "Segment 1", "color": "red", "length": 7},
+        {"name": "Segment 2", "color": "green", "length": 3},
+        {"name": "Segment 3", "color": "blue", "length": 7},
+        {"name": "Segment 4", "color": "yellow", "length": 3}
+    ]
+}  

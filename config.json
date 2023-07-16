@@ -1,0 +1,12 @@
+{
+    "main_window": {
+        "x_percent": 0.1, 
+        "y_percent": 0.1, 
+        "width_percent": 0.8, 
+        "height_percent": 0.8},
+    "progress_bar": {
+        "x_percent": 0.1, 
+        "y_percent": 0.9, 
+        "width_percent": 0.8, 
+        "height_percent": 0.05}
+}
