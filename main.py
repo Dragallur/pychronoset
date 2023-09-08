@@ -30,8 +30,9 @@ if __name__ == '__main__':
     progress_bar = WB.CustomProgressBar(main_window, config_data['progress_bar'])
     #progress_bar.setGeometry(progress_bar.progress_bar_rect)
     layout.addWidget(progress_bar)
-    progress_bar.load_segments_from_json("workout.json")
     progress_bar.createMovingHand()
+    progress_bar.load_segments_from_json("workout.json")
+    progress_bar.moving_hand.raise_()
     progress_bar.start_timer()
 
     #layout.addWidget(progress_bar)
