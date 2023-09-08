@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QDesktopWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QDesktopWidget, QVBoxLayout, QWidget, QBoxLayout
 import sys
 import json
 import workout_bar as WB
@@ -23,13 +23,18 @@ if __name__ == '__main__':
     main_window.setWindowTitle("PyChronoSet")
     main_window.setGeometry(main_window_x, main_window_y, main_window_width, main_window_height)
 
+    #layout = QVBoxLayout(main_window)
     layout = QVBoxLayout(main_window)
+    layout.setContentsMargins(0, 0, 0, 0)
 
-    progress_bar = WB.CustomProgressBar(config_data['progress_bar'])
+    progress_bar = WB.CustomProgressBar(main_window, config_data['progress_bar'])
+    #progress_bar.setGeometry(progress_bar.progress_bar_rect)
+    layout.addWidget(progress_bar)
     progress_bar.load_segments_from_json("workout.json")
+    progress_bar.createMovingHand()
     progress_bar.start_timer()
 
-    layout.addWidget(progress_bar)
+    #layout.addWidget(progress_bar)
 
     main_window.show()
     progress_bar.show()
