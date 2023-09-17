@@ -2,9 +2,10 @@ import sys
 import json
 import time
 from PyQt5 import QtGui
-from PyQt5.QtCore import QTimer, Qt, QPoint, QSize
+from PyQt5.QtGui import QDrag, QDropEvent, QDragEnterEvent, QDragMoveEvent, QDragLeaveEvent
+from PyQt5.QtCore import QTimer, Qt, QPoint, QMimeData
 from PyQt5.QtGui import QPainter, QColor, QPen
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 class CustomProgressBar(QWidget):
     total_duration = 0
@@ -26,6 +27,10 @@ class CustomProgressBar(QWidget):
         self.progress_bar_rect.setHeight(self.parentWidget().height() * self.progress_bar_size["height_percent"])
         self.setGeometry(self.progress_bar_rect)
 
+        self.load_segments_from_json("workout.json")
+        self.createMovingHand()
+        self.start_timer()
+
     def load_segments_from_json(self, file_path):
         with open(file_path, 'r') as f:
             data = json.load(f)
@@ -36,9 +41,10 @@ class CustomProgressBar(QWidget):
                 self.segments.append(Segment(segment["length"], segment["color"],
                                              self.progress_bar_size, self.progress_bar_rect,
                                              current_x, self))
-                current_x += segment["length"] / CustomProgressBar.total_duration * self.progress_bar_rect.width()
-                self.segments[-1].setGeometry(self.progress_bar_rect)
+                self.segments[-1].setGeometry(self.progress_bar_rect.x() + self.segments[-1].current_x, self.progress_bar_rect.y(),
+                                                self.segments[-1].segment_width, self.progress_bar_rect.height())
                 self.segments[-1].show()
+                current_x += segment["length"] / CustomProgressBar.total_duration * self.progress_bar_rect.width()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -69,10 +75,10 @@ class CustomProgressBar(QWidget):
     def createMovingHand(self):
         self.moving_hand = MovingHand(self, self.progress_bar_rect)
         self.moving_hand.setGeometry(self.progress_bar_rect)
+        self.moving_hand.raise_()
         
 class Segment(QWidget):
     def __init__(self, length, color, progress_bar_size, progress_bar_rect, current_x, parent):
-        #super().__init__(parent, progress_bar_size)
         super().__init__(parent)
         self.length = length 
         self.color = color
@@ -84,22 +90,33 @@ class Segment(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            print("click")
+            print(self.color)
     
+    def mouseMoveEvent(self, event):
+        if event.buttons() != Qt.RightButton:
+            return
+
+        mimeData = QMimeData()
+
+        drag = QDrag(self)
+        drag.setMimeData(mimeData)
+        drag.setHotSpot(event.pos() - self.rect().topLeft())
+
+        dropAction = drag.exec_(Qt.MoveAction)
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
         painter.setPen(QPen(Qt.NoPen))
         painter.setBrush(QColor(self.color))
-        painter.drawRect(self.current_x, self.progress_bar_rect.height() / 4,
+        painter.drawRect(0, self.progress_bar_rect.height() / 4,
                         self.segment_width, self.progress_bar_rect.height() / 2)
 
 class MovingHand(QWidget):
     def __init__(self, parent, progress_bar_rect):
         super().__init__(parent)
         self.progress_bar_rect = progress_bar_rect
-        #self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
     def paintEvent(self, event):
         moving_hand_x = CustomProgressBar.total_elapsed_time / 1000 / CustomProgressBar.total_duration * self.progress_bar_rect.width()
