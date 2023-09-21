@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QDesktopWidget, QVBoxLayout, QWidget, 
 import sys
 import json
 import workout_bar as WB
+import numpy as np
 
 def load_config(file_path):
     with open(file_path, 'r') as f:
@@ -34,7 +35,28 @@ class MainWindow(QWidget):
 
     def dropEvent(self, event):
         position = event.pos()
-        self.move(position)
+        segment = event.source()
+        orig_seg_y = int(segment.y())
+        ind_org = self.progress_bar.segments.index(segment)
+        temp = np.argwhere(position.x() > segment.parentWidget().seg_x_pos + self.progress_bar.progress_bar_rect.x())
+
+        if temp.size == 0:
+            ind_new = 0
+        else:
+            ind_new = temp[-1][0]
+            
+        old_order = list(range(len(self.progress_bar.segments)))
+        new_order = old_order
+        new_order.pop(ind_org)
+        new_order.insert(ind_new, ind_org)
+        self.progress_bar.segments = [self.progress_bar.segments[i] for i in new_order]
+
+        for i in range(min(ind_org, ind_new), max(ind_org, ind_new)+1):
+            if i == 0:
+                self.progress_bar.seg_x_pos[i] = 0
+            else:
+                self.progress_bar.seg_x_pos[i] = self.progress_bar.seg_x_pos[i-1] + self.progress_bar.segments[i-1].segment_width
+            self.progress_bar.segments[i].move(int(self.progress_bar.seg_x_pos[i] + self.progress_bar.progress_bar_rect.x()), orig_seg_y)
 
         event.setDropAction(QtCore.Qt.MoveAction)
         event.accept()

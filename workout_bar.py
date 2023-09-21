@@ -1,6 +1,7 @@
 import sys
 import json
 import time
+import numpy as np
 from PyQt5 import QtGui
 from PyQt5.QtGui import QDrag, QDropEvent, QDragEnterEvent, QDragMoveEvent, QDragLeaveEvent
 from PyQt5.QtCore import QTimer, Qt, QPoint, QMimeData
@@ -37,14 +38,18 @@ class CustomProgressBar(QWidget):
             segments_data = data.get("segments", [])
             CustomProgressBar.total_duration = sum(segment["length"] for segment in segments_data)
             current_x = 0
-            for segment in segments_data:
-                self.segments.append(Segment(segment["length"], segment["color"],
+            self.seg_x_pos = np.empty(len(segments_data))
+            self.seg_length = np.empty(len(segments_data))
+            for segment in enumerate(segments_data):
+                self.segments.append(Segment(segment[1]["length"], segment[1]["color"],
                                              self.progress_bar_size, self.progress_bar_rect,
                                              current_x, self))
                 self.segments[-1].setGeometry(self.progress_bar_rect.x() + self.segments[-1].current_x, self.progress_bar_rect.y(),
                                                 self.segments[-1].segment_width, self.progress_bar_rect.height())
                 self.segments[-1].show()
-                current_x += segment["length"] / CustomProgressBar.total_duration * self.progress_bar_rect.width()
+                self.seg_x_pos[segment[0]] = current_x
+                self.seg_length[segment[0]] = segment[1]["length"]
+                current_x += int(segment[1]["length"] / CustomProgressBar.total_duration * self.progress_bar_rect.width())
 
     def paintEvent(self, event):
         painter = QPainter(self)
